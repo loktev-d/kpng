@@ -36,7 +36,7 @@ KINDEST_NODE_IMAGE="docker.io/kindest/node"
 CLUSTER_NAME="kpng-proxy"
 K8S_VERSION="v1.27.1"
 OS=$(uname| tr '[:upper:]' '[:lower:]')
-ARCH=$(uname -m | sed "s/aarch64/arm64")
+ARCH=$(uname -m | sed "s/aarch64/arm64/")
 
 function add_to_path {
     ###########################################################################
