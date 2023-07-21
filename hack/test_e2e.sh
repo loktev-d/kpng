@@ -901,7 +901,7 @@ function main {
     fi
     set_host_network_settings "${ip_family}"
 
-    install_binaries "${bin_dir}" "${E2E_K8S_VERSION}" "${OS}"
+    install_binaries "${bin_dir}" "${E2E_K8S_VERSION}" "${OS}" "${ARCH}"
     # compile bpf bytecode and bindings so build completes successfully
     if [ "${backend}" == "ebpf" ] ; then
         if [ "${ip_family}" != "ipv4" ] ; then

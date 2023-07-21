@@ -36,6 +36,7 @@ KINDEST_NODE_IMAGE="docker.io/kindest/node"
 CLUSTER_NAME="kpng-proxy"
 K8S_VERSION="v1.27.1"
 OS=$(uname| tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m | sed "s/aarch64/arm64")
 
 function add_to_path {
     ###########################################################################
@@ -68,6 +69,7 @@ function install_binaries {
     #   arg1: binary directory, path to where ginko will be installed         #
     #   arg2: Kubernetes version                                              #
     #   arg3: OS, name of the operating system                                #
+    #   arg4: ARCH, name of the architecture                                  #
     ###########################################################################
 
     [ $# -eq 3 ]
@@ -76,6 +78,7 @@ function install_binaries {
     local bin_directory="${1}"
     local k8s_version="${2}"
     local os="${3}"
+    local arch="${4}"
 
     pushd "${0%/*}" > /dev/null || exit
           mkdir -p "${bin_directory}"
@@ -84,8 +87,8 @@ function install_binaries {
     add_to_path "${bin_directory}"
 
     setup_kind "${bin_directory}"
-    setup_kubectl "${bin_directory}" "${k8s_version}" "${os}"
-    setup_ginkgo "${bin_directory}" "${k8s_version}" "${os}"
+    setup_kubectl "${bin_directory}" "${k8s_version}" "${os}" "${arch}"
+    setup_ginkgo "${bin_directory}" "${k8s_version}" "${os}" "${arch}"
     setup_bpf2go "${bin_directory}"
 }
 
@@ -112,7 +115,7 @@ function setup_kind {
         local tmp_file=$(mktemp -q)
         if_error_exit "Could not create temp file, mktemp failed"
 
-        curl -L https://kind.sigs.k8s.io/dl/"${KIND_VERSION}"/kind-"${OS}"-amd64 -o "${tmp_file}"
+        curl -L https://kind.sigs.k8s.io/dl/"${KIND_VERSION}"/kind-"${OS}"-"${ARCH}" -o "${tmp_file}"
         if_error_exit "cannot download kind"
 
         sudo mv "${tmp_file}" "${install_directory}"/kind
@@ -132,6 +135,7 @@ function setup_kubectl {
     #   arg1: installation directory, path to where kubectl will be installed #
     #   arg2: Kubernetes version                                              #
     #   arg3: OS, name of the operating system                                #
+    #   arg4: ARCH, name of the architecture                                  #
     ###########################################################################
 
     [ $# -eq 3 ]
@@ -140,6 +144,7 @@ function setup_kubectl {
     local install_directory=$1
     local k8s_version=${2}
     local os=${3}
+    local arch=${4}
 
     [ -d "${install_directory}" ]
     if_error_exit "Directory \"${install_directory}\" does not exist"
@@ -151,7 +156,7 @@ function setup_kubectl {
         local tmp_file=$(mktemp -q)
         if_error_exit "Could not create temp file, mktemp failed"
 
-        curl -L https://dl.k8s.io/"${k8s_version}"/bin/"${os}"/amd64/kubectl -o "${tmp_file}"
+        curl -L https://dl.k8s.io/"${k8s_version}"/bin/"${os}"/"${arch}"/kubectl -o "${tmp_file}"
         if_error_exit "cannot download kubectl"
 
         sudo mv "${tmp_file}" "${install_directory}"/kubectl
@@ -171,6 +176,7 @@ function setup_ginkgo {
     #   arg1: binary directory, path to where ginko will be installed         #
     #   arg2: Kubernetes version                                              #
     #   arg3: OS, name of the operating system                                #
+    #   arg4: ARCH, name of the architecture                                  #
     ###########################################################################
 
     [ $# -eq 3 ]
@@ -179,15 +185,16 @@ function setup_ginkgo {
     local bin_dir=${1}
     local k8s_version=${2}
     local os=${3}
+    local arch=${4}
     local temp_directory=$(mktemp -qd)
 
     if ! [ -f "${bin_dir}"/ginkgo ] || ! [ -f "${bin_dir}"/e2e.test ] ; then
         info_message "Downloading ginkgo and e2e.test ..."
-        curl -L https://dl.k8s.io/release/"${k8s_version}"/kubernetes-test-"${os}"-amd64.tar.gz \
-            -o "${temp_directory}"/kubernetes-test-"${os}"-amd64.tar.gz
+        curl -L https://dl.k8s.io/release/"${k8s_version}"/kubernetes-test-"${os}"-${arch}.tar.gz \
+            -o "${temp_directory}"/kubernetes-test-"${os}"-${arch}.tar.gz
         if_error_exit "cannot download kubernetes-test package"
 
-        tar xvzf "${temp_directory}"/kubernetes-test-"${os}"-amd64.tar.gz \
+        tar xvzf "${temp_directory}"/kubernetes-test-"${os}"-${arch}.tar.gz \
             --directory "${bin_directory}" \
             --strip-components=3 kubernetes/test/bin/ginkgo kubernetes/test/bin/e2e.test &> /dev/null
 
