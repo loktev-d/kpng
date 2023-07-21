@@ -72,7 +72,7 @@ function install_binaries {
     #   arg4: ARCH, name of the architecture                                  #
     ###########################################################################
 
-    [ $# -eq 3 ]
+    [ $# -eq 4 ]
     if_error_exit "copybin $# Wrong number of arguments to ${FUNCNAME[0]}"
 
     local bin_directory="${1}"
@@ -138,7 +138,7 @@ function setup_kubectl {
     #   arg4: ARCH, name of the architecture                                  #
     ###########################################################################
 
-    [ $# -eq 3 ]
+    [ $# -eq 4 ]
     if_error_exit "setup_kubectl $# Wrong number of arguments to ${FUNCNAME[0]}"
 
     local install_directory=$1
@@ -179,7 +179,7 @@ function setup_ginkgo {
     #   arg4: ARCH, name of the architecture                                  #
     ###########################################################################
 
-    [ $# -eq 3 ]
+    [ $# -eq 4 ]
     if_error_exit "ginkgo e2e.test $# Wrong number of arguments to ${FUNCNAME[0]}"
 
     local bin_dir=${1}
